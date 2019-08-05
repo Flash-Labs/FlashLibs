@@ -1,0 +1,46 @@
+plugins {
+    id "java"
+    id "org.spongepowered.plugin" version "0.9.0"
+}
+
+group "dev.flashlabs.flashlibs"
+version "0.0.0"
+
+ext.spongeapiVersion = "7.1.0"
+
+dependencies {
+    compileOnly "org.spongepowered:spongeapi:$spongeapiVersion"
+}
+
+//Sets plugin metadata through Gradle build instead of the @Plugin annotation.
+sponge.plugin.meta {
+    description = "A library for Sponge development"
+    url = "https://flashlabs.dev/projects/flashlibs"
+    authors = ["FlashLabs"]
+    dependencies {
+        spongeapi.version = spongeapiVersion
+    }
+}
+
+jar.version = "v$version"
+
+//Produces a sources jar for providing source to consumers.
+task sourcesJar(type: Jar, dependsOn: classes) {
+    from sourceSets.main.allSource
+    version = "v$version-sources"
+}
+
+//Produces a javadoc jar for rendering javadoc documentation.
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+    version = "v$version-javadoc"
+}
+
+//Includes custom jars in published artifacts for external access.
+artifacts.archives (sourcesJar, javadocJar)
+
+//Copies produced jar files into a project folder for releases by version.
+task copyJars(type: Copy) {
+    from (jar, sourcesJar, javadocJar) into project.file("'releases/${version}")
+}
+build.dependsOn(copyJars)
