@@ -60,7 +60,7 @@ final class NodeResourceBundle extends ResourceBundle {
      */
     private static final class Control extends ResourceBundle.Control {
 
-        private static final ImmutableList<String> FORMATS = ImmutableList.of("conf", "json", "yaml", "properties");
+        private static final List<String> FORMATS = ImmutableList.of("conf", "json", "yaml", "properties", "class");
 
         @Override
         public List<String> getFormats(String baseName) {
@@ -68,17 +68,19 @@ final class NodeResourceBundle extends ResourceBundle {
         }
 
         @Override
-        public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload) throws IOException {
+        public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload) throws IllegalAccessException, InstantiationException, IOException {
             URL url = loader.getResource(toResourceName(toBundleName(baseName, locale), format));
             if (url != null) {
-                ConfigurationLoader config;
                 switch (format) {
-                    case "conf": config = HoconConfigurationLoader.builder().setURL(url).build(); break;
-                    case "json": config = GsonConfigurationLoader.builder().setURL(url).build(); break;
-                    case "yaml": config = YAMLConfigurationLoader.builder().setURL(url).build(); break;
-                    default: return newBundle(baseName, locale, "java.properties", loader, reload);
+                    case "conf":
+                        return new NodeResourceBundle(HoconConfigurationLoader.builder().setURL(url).build().load());
+                    case "json":
+                        return new NodeResourceBundle(GsonConfigurationLoader.builder().setURL(url).build().load());
+                    case "yaml":
+                        return new NodeResourceBundle(YAMLConfigurationLoader.builder().setURL(url).build().load());
+                    default:
+                        return super.newBundle(baseName, locale, "java." + format, loader, reload);
                 }
-                return new NodeResourceBundle(config.load());
             }
             return null;
         }
