@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.gson.GsonConfigurationLoader;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 import sun.util.ResourceBundleEnumeration;
 
@@ -56,7 +55,7 @@ final class NodeResourceBundle extends ResourceBundle {
     /**
      * The {@link ResourceBundle.Control} implementation supporting additional
      * formats with Configurate. Hocon (.conf), Json (.json) and Yaml (.yaml)
-     * extensions are supported, as well as the default properties file.
+     * extensions are supported, as well as properties files and classes.
      */
     private static final class Control extends ResourceBundle.Control {
 

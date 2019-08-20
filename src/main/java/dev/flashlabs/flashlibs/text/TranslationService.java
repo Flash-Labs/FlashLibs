@@ -25,7 +25,7 @@ public final class TranslationService {
     }
 
     /**
-     * Returns a service loading resource bundles using the given name and class
+     * Creates a service loading resource bundles using the given name and class
      * loader.
      */
     public static TranslationService of(String name, ClassLoader loader) {
@@ -33,7 +33,7 @@ public final class TranslationService {
     }
 
     /**
-     * Returns a service loading resource bundles using the given name and path.
+     * Creates a service loading resource bundles using the given name and path.
      *
      * @throws MalformedURLException If the path's URL could not be created.
      */
@@ -45,6 +45,7 @@ public final class TranslationService {
      * Returns a {@link ResourceBundle} for the given locale.
      *
      * @see ResourceBundle#getBundle(String, Locale)
+     * @throws java.util.MissingResourceException If no resource bundle exists
      */
     public ResourceBundle getBundle(Locale locale) {
         return ResourceBundle.getBundle(name, locale, loader, NodeResourceBundle.CONTROL);

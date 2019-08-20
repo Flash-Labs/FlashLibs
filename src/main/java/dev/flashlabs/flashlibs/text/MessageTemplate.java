@@ -52,9 +52,7 @@ public final class MessageTemplate {
             if (placeholder.matches()) {
                 TextTemplate.Arg.Builder builder = TextTemplate.arg(placeholder.group(2));
                 if (placeholder.group(1) != null) {
-                    Text format = TextSerializers.FORMATTING_CODE.deserialize(placeholder.group(1) + "?");
-                    builder.color(format.getColor());
-                    builder.style(format.getStyle());
+                    builder.format(TextSerializers.FORMATTING_CODE.deserialize(placeholder.group(1) + "?").getFormat());
                 }
                 elements.add(builder);
             } else {
