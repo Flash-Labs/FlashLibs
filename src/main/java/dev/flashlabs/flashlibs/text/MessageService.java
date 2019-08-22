@@ -58,10 +58,10 @@ public final class MessageService {
      * {@link Locale} applied to the given arguments.
      *
      * @see MessageService#get(String, Locale)
-     * @see MessageTemplate#apply(Object...)
+     * @see MessageTemplate#get(Object...)
      */
     public Text get(String key, Locale locale, Object... args) {
-        return get(key, locale).apply(args);
+        return get(key, locale).get(args);
     }
 
     /**

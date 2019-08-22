@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * <p>Arguments are defined inside of {@code ${}}, as in string interpolation,
  * which may be escaped with a leading backslash such as in {@code \${}}. The
  * brackets contain three parts: the format, a literal {@code @} symbol, and the
- * argument name. The format is optional {@code &}-style codes, and the name is
+ * argument key. The format is optional {@code &}-style codes, and the key is
  * any kebab-case string (lowercase and hyphen only). Some examples are {@code
  * ${@player}}, {@code ${&6&l@player}}, and {@code ${&a@player-location}}.
  */
@@ -67,18 +67,35 @@ public final class MessageTemplate {
     }
 
     /**
-     * Applies the given arguments to this template using the given map. All
-     * arguments are expected to be defined.
+     * Applies the given arguments to this template using the given map, adding
+     * any missing arguments to the map with {@code @key}. The {@param args} map
+     * is mutated in the process.
      */
-    public Text apply(Map<String, Object> args) {
+    private Text apply(Map<String, Object> args) {
+        template.getArguments().keySet().forEach(k -> args.putIfAbsent(k, "@" + k));
         return template.apply(args).build();
     }
 
     /**
-     * Applies the given arguments to this template by key-value pairs, ignoring
-     * any trailing argument. All arguments are expected to be defined.
+     * Gets this message with the given arguments applied. Unused arguments are
+     * ignored and uses of undefined arguments are replaced with {@code @key}.
      */
-    public Text apply(Object... args) {
+    public Text get(Map<String, Object> args) {
+        return apply(Maps.newHashMap(args));
+    }
+
+    /**
+     * Gets this message with the given argument applied. Arguments are supplied
+     * by key-value pairs, raising an exception for an incomplete pair. Unused
+     * arguments are ignored and uses of undefined arguments are replaced with
+     * {@code @key}.
+     *
+     * @throws IllegalArgumentException If a given argument is missing a value.
+     */
+    public Text get(Object... args) {
+        if (args.length % 2 == 1) {
+            throw new IllegalArgumentException("Argument " + args[args.length - 1] + " is missing a value.");
+        }
         Map<String, Object> map = Maps.newHashMap();
         for (int i = 1; i < args.length; i += 2) {
             map.put(String.valueOf(args[i - 1]), args[i]);
