@@ -1,4 +1,4 @@
-package dev.flashlabs.flashlibs.text;
+package dev.flashlabs.flashlibs.translation;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.TestInstance;
@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 final class TranslationServiceTest {
 
-    private static final TranslationService SERVICE = TranslationService.of("messages.messages", ClassLoader.getSystemClassLoader());
+    private static final TranslationService SERVICE = TranslationService.of("translation.messages", ClassLoader.getSystemClassLoader());
 
     private static Stream<Arguments> test() {
         return Stream.of(

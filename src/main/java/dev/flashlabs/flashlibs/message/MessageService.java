@@ -1,8 +1,9 @@
-package dev.flashlabs.flashlibs.text;
+package dev.flashlabs.flashlibs.message;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.Maps;
+import dev.flashlabs.flashlibs.translation.TranslationService;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.text.Text;
 

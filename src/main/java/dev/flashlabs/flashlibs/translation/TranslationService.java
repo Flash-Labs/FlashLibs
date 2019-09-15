@@ -1,4 +1,4 @@
-package dev.flashlabs.flashlibs.text;
+package dev.flashlabs.flashlibs.translation;
 
 import java.net.MalformedURLException;
 import java.net.URL;

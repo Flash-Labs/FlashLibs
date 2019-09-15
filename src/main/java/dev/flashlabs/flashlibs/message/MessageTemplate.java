@@ -1,4 +1,4 @@
-package dev.flashlabs.flashlibs.text;
+package dev.flashlabs.flashlibs.message;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
