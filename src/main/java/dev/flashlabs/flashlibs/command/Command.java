@@ -2,16 +2,18 @@ package dev.flashlabs.flashlibs.command;
 
 import com.google.common.collect.ImmutableList;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
 
+import java.util.Optional;
+
 /**
  * Represents a command that is registered with Sponge. Commands are created
- * through the {@link CommandService} by injecting into a constructor taking a
- * {@link Command.Builder} parameter. Commands are registered automatically upon
- * initialization.
+ * through the {@link CommandService} by injecting into the constructor.
+ * Commands are registered automatically upon initialization.
  *
  * @see CommandSpec
  */
@@ -19,15 +21,19 @@ public abstract class Command implements CommandExecutor {
 
     private final CommandSpec spec;
     private final ImmutableList<String> aliases;
+    final Optional<CommandMapping> mapping;
 
     /**
      * Initializes this command with the values set in the builder and registers
-     * it to Sponge.
+     * it to Sponge. Instances are initialized through constructor injection, so
+     * the subclass must provide a constructor matching this signature.
+     *
+     * @see CommandService#get(Class)
      */
     protected Command(Builder builder) {
         spec = builder.spec.build();
         aliases = builder.aliases.build();
-        Sponge.getCommandManager().register(builder.service.container, spec, aliases.stream()
+        mapping = Sponge.getCommandManager().register(builder.service.container, spec, aliases.stream()
                 .filter(a -> a.startsWith("/"))
                 .map(a -> a.substring(1))
                 .toArray(String[]::new));
@@ -37,7 +43,7 @@ public abstract class Command implements CommandExecutor {
      * A builder for commands that creates the internal {@link CommandSpec} and
      * aliases used for registration with Sponge.
      */
-    protected static class Builder {
+    protected static final class Builder {
 
         private final CommandService service;
         private final CommandSpec.Builder spec = CommandSpec.builder();
