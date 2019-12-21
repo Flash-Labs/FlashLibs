@@ -39,7 +39,7 @@ public final class View {
     }
 
     public void open(Player player) {
-        Task.builder().execute(() -> player.openInventory(inventory)).submit(container);
+        player.openInventory(inventory);
     }
 
     public void define(Layout layout) {

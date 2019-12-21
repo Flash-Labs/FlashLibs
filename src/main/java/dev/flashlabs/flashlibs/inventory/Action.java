@@ -27,7 +27,7 @@ public class Action<T extends InteractInventoryEvent> {
         return player;
     }
 
-    public void callback(Consumer<View> callback) {
+    public final void callback(Consumer<View> callback) {
         view.execute(callback);
     }
 
@@ -38,8 +38,8 @@ public class Action<T extends InteractInventoryEvent> {
 
         Click(ClickInventoryEvent event, Player player, View view, SlotTransaction slot, int index) {
             super(event, player, view);
-            this.index = index;
             this.slot = slot;
+            this.index = index;
         }
 
         public SlotTransaction getSlot() {
