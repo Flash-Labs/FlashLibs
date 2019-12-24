@@ -1,25 +1,23 @@
 package dev.flashlabs.flashlibs.inventory;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.InventoryArchetype;
-import org.spongepowered.api.item.inventory.InventoryProperty;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.property.AbstractInventoryProperty;
+import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.item.inventory.property.SlotIndex;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.text.Text;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -30,10 +28,12 @@ public final class View {
     private final PluginContainer container;
 
     private View(Builder builder, PluginContainer container) {
-        Inventory.Builder b = Inventory.builder().of(builder.archetype);
-        builder.properties.forEach(b::property);
+        Inventory.Builder b = Inventory.builder()
+                .of(builder.archetype)
+                .property(InventoryTitle.of(builder.title))
+                .listener(ClickInventoryEvent.class, this::onClick);
         builder.listeners.forEach((c, a) -> b.listener(c, e -> onEvent(e, a)));
-        inventory = b.listener(ClickInventoryEvent.class, this::onClick).build(container);
+        inventory = b.build(container);
         this.container = container;
         define(builder.layout);
     }
@@ -95,7 +95,7 @@ public final class View {
     public static class Builder {
 
         private final InventoryArchetype archetype;
-        private final List<InventoryProperty> properties = Lists.newArrayList();
+        private Text title = Text.EMPTY;
         private final Map<Class<? extends InteractInventoryEvent>, Consumer<Action>> listeners = Maps.newHashMap();
         private Layout layout = Layout.EMPTY;
 
@@ -103,8 +103,8 @@ public final class View {
             this.archetype = archetype;
         }
 
-        public Builder property(InventoryProperty property) {
-            properties.add(property);
+        public Builder title(Text title) {
+            this.title = title;
             return this;
         }
 
