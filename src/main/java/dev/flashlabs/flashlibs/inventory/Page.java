@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public final class Page<T> {
+public final class Page {
 
     public static final Element
             FIRST = Element.of(ItemStack.empty()),
@@ -27,16 +27,14 @@ public final class Page<T> {
     private final InventoryArchetype archetype;
     private final Function<Context, Text> title;
     private final ImmutableMap<Element, Function<Context, Element>> icons;
-    private final Function<T, Element> content;
     private final Layout layout;
     private final List<View> views = Lists.newArrayList();
     private final PluginContainer container;
 
-    private Page(Builder<T> builder, PluginContainer container) {
+    private Page(Builder builder, PluginContainer container) {
         archetype = builder.archetype;
         title = builder.title;
         icons = ImmutableMap.copyOf(builder.icons);
-        content = (Function<T, Element>) builder.content;
         layout = builder.layout;
         this.container = container;
         define(Lists.newArrayList());
@@ -50,7 +48,7 @@ public final class Page<T> {
         views.get(page > 1 ? Math.max(page, views.size()) - 1 : 0).open(player);
     }
 
-    public void define(List<T> contents) {
+    public void define(List<Element> contents) {
         views.clear();
         int size = layout.getDimension().getRows() * layout.getDimension().getColumns() - layout.getElements().size();
         int pages = Math.min((contents.size() - 1) / size + 1, 1);
@@ -60,7 +58,7 @@ public final class Page<T> {
             for (int index = (i - 1) * size, j = 0; j < layout.getElements().size() + size; j++) {
                 Element element = elements.get(j);
                 if (element == null) {
-                    elements.put(j, content.apply(contents.get(index++)));
+                    elements.put(j, contents.get(index++));
                 } else if (icons.containsKey(element)) {
                     elements.put(j, icons.get(element).apply(context));
                 }
@@ -100,11 +98,11 @@ public final class Page<T> {
 
     }
 
-    public static Builder<Element> builder(InventoryArchetype archetype) {
-        return new Builder<>(archetype);
+    public static Builder builder(InventoryArchetype archetype) {
+        return new Builder(archetype);
     }
 
-    public static final class Builder<T> {
+    public static final class Builder {
 
         private static final Function<Context, Text> DEFAULT_TITLE = c -> Text.of("Page " + c.getCurrent());
         private static final ImmutableMap<Element, Function<Context, Element>> DEFAULT_ICONS = ImmutableMap.<Element, Function<Context, Element>>builder()
@@ -126,35 +124,29 @@ public final class Page<T> {
         private final InventoryArchetype archetype;
         private Function<Context, Text> title = DEFAULT_TITLE;
         private final Map<Element, Function<Context, Element>> icons = Maps.newHashMap(DEFAULT_ICONS);
-        private Function<?, Element> content = Element.class::cast;
         private Layout layout = Layout.EMPTY;
 
         private Builder(InventoryArchetype archetype) {
             this.archetype = archetype;
         }
 
-        public Builder<T> title(Function<Context, Text> function) {
+        public Builder title(Function<Context, Text> function) {
             title = function;
             return this;
         }
 
-        public Builder<T> icon(Element icon, Function<Context, Element> function) {
+        public Builder icon(Element icon, Function<Context, Element> function) {
             icons.put(icon, function);
             return this;
         }
 
-        public <T> Builder<T> content(Function<T, Element> function) {
-            content = function;
-            return (Builder<T>) this;
-        }
-
-        public Builder<T> layout(Layout layout) {
+        public Builder layout(Layout layout) {
             this.layout = layout;
             return this;
         }
 
-        public Page<T> build(PluginContainer container) {
-            return new Page<>(this, container);
+        public Page build(PluginContainer container) {
+            return new Page(this, container);
         }
 
     }
