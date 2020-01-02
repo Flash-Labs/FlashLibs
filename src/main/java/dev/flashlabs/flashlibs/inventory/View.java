@@ -35,21 +35,22 @@ public final class View {
         builder.listeners.forEach((c, a) -> b.listener(c, e -> onEvent(e, a)));
         inventory = b.build(container);
         this.container = container;
-        define(builder.layout);
     }
 
     public void open(Player player) {
         player.openInventory(inventory);
     }
 
-    public void define(Layout layout) {
+    public View define(Layout layout) {
         for (int i = 0; i < inventory.capacity(); i++) {
             set(layout.getElements().getOrDefault(i, Element.EMPTY), i);
         }
+        return this;
     }
 
-    public void update(Layout layout) {
+    public View update(Layout layout) {
         layout.getElements().forEach((i, e) -> set(e, i));
+        return this;
     }
 
     public void set(Element element, int index) {
@@ -72,7 +73,7 @@ public final class View {
     private void onClick(ClickInventoryEvent event) {
         event.getCause().first(Player.class).ifPresent(p -> {
             List<SlotTransaction> transactions = event.getTransactions().stream()
-                    .filter(s -> inventory.containsInventory(s.getSlot()))
+                    .filter(t -> inventory.containsInventory(t.getSlot().transform()))
                     .collect(Collectors.toList());
             if (!transactions.isEmpty()) {
                 event.setCancelled(true);
@@ -97,7 +98,6 @@ public final class View {
         private final InventoryArchetype archetype;
         private Text title = Text.EMPTY;
         private final Map<Class<? extends InteractInventoryEvent>, Consumer<Action>> listeners = Maps.newHashMap();
-        private Layout layout = Layout.EMPTY;
 
         private Builder(InventoryArchetype archetype) {
             this.archetype = archetype;
@@ -115,11 +115,6 @@ public final class View {
 
         public Builder onClose(Consumer<Action<InteractInventoryEvent.Close>> onClose) {
             listeners.put(InteractInventoryEvent.Close.class, (Consumer<Action>) (Object) onClose);
-            return this;
-        }
-
-        public Builder layout(Layout layout) {
-            this.layout = layout;
             return this;
         }
 

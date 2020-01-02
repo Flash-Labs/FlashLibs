@@ -94,7 +94,6 @@ public final class Layout {
         }
 
         public Layout build() {
-            elements.values().removeIf(e -> e == Element.EMPTY);
             return new Layout(this);
         }
 

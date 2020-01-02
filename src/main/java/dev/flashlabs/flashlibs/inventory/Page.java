@@ -45,19 +45,19 @@ public final class Page {
     }
 
     public void open(Player player, int page) {
-        views.get(page > 1 ? Math.max(page, views.size()) - 1 : 0).open(player);
+        views.get(page > 1 ? Math.min(page, views.size()) - 1 : 0).open(player);
     }
 
-    public void define(List<Element> contents) {
+    public Page define(List<Element> contents) {
         views.clear();
         int size = layout.getDimension().getRows() * layout.getDimension().getColumns() - layout.getElements().size();
-        int pages = Math.min((contents.size() - 1) / size + 1, 1);
+        int pages = Math.max((contents.size() - 1) / size + 1, 1);
         for (int i = 1; i <= pages; i++) {
-            Context context = new Context(this, i, pages);
+            Context context = new Context(i, pages);
             Map<Integer, Element> elements = Maps.newHashMap(layout.getElements());
             for (int index = (i - 1) * size, j = 0; j < layout.getElements().size() + size; j++) {
                 Element element = elements.get(j);
-                if (element == null) {
+                if (element == null && index < contents.size()) {
                     elements.put(j, contents.get(index++));
                 } else if (icons.containsKey(element)) {
                     elements.put(j, icons.get(element).apply(context));
@@ -65,27 +65,22 @@ public final class Page {
             }
             views.add(View.builder(archetype)
                     .title(title.apply(context))
-                    .layout(Layout.builder(layout.getDimension().getRows(), layout.getDimension().getColumns())
+                    .build(container)
+                    .define(Layout.builder(layout.getDimension().getRows(), layout.getDimension().getColumns())
                             .set(elements)
-                            .build())
-                    .build(container));
+                            .build()));
         }
+        return this;
     }
 
-    public static final class Context {
+    public final class Context {
 
-        private final Page page;
         private final int current;
         private final int total;
 
-        private Context(Page page, int current, int total) {
-            this.page = page;
+        private Context(int current, int total) {
             this.current = current;
             this.total = total;
-        }
-
-        public Page getPage() {
-            return page;
         }
 
         public int getCurrent() {
@@ -94,6 +89,10 @@ public final class Page {
 
         public int getTotal() {
             return total;
+        }
+
+        public void open(Player player, int page) {
+            Page.this.open(player, page);
         }
 
     }
@@ -107,9 +106,9 @@ public final class Page {
         private static final Function<Context, Text> DEFAULT_TITLE = c -> Text.of("Page " + c.getCurrent());
         private static final ImmutableMap<Element, Function<Context, Element>> DEFAULT_ICONS = ImmutableMap.<Element, Function<Context, Element>>builder()
                 .put(Page.FIRST, c -> icon(c, "First", 1))
-                .put(Page.PREVIOUS, c -> icon(c, "Previous", Math.max(c.getCurrent(), 1)))
+                .put(Page.PREVIOUS, c -> icon(c, "Previous", Math.max(c.getCurrent() - 1, 1)))
                 .put(Page.CURRENT, c -> icon(c, "Current", c.getCurrent()))
-                .put(Page.NEXT, c -> icon(c, "Next", Math.min(c.getCurrent(), c.getTotal())))
+                .put(Page.NEXT, c -> icon(c, "Next", Math.min(c.getCurrent() + 1, c.getTotal())))
                 .put(Page.LAST, c -> icon(c, "Last", c.getTotal()))
                 .build();
 
@@ -118,7 +117,7 @@ public final class Page {
                     .itemType(context.getCurrent() == target ? ItemTypes.MAP : ItemTypes.PAPER)
                     .add(Keys.DISPLAY_NAME, Text.of(name, " (", target, ")"))
                     .quantity(context.getTotal() > 64 ? target : 1)
-                    .build(), a -> context.getPage().open(a.getPlayer(), target));
+                    .build(), a -> a.callback(v -> context.open(a.getPlayer(), target)));
         }
 
         private final InventoryArchetype archetype;
