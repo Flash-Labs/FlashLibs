@@ -26,13 +26,15 @@ jar.version = "v$version"
 //Produces a sources jar for providing source to consumers.
 task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
-    version = "v$version-sources"
+    version = "v$version"
+    classifier = "sources"
 }
 
 //Produces a javadoc jar for rendering javadoc documentation.
 task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
-    version = "v$version-javadoc"
+    version = "v$version"
+    classifier = "javadoc"
 }
 
 //Includes custom jars in published artifacts for external access.
