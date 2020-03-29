@@ -15,6 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Represents a pagination system of views supporting navigation. Pages are
+ * defined using a base layout as a template and functions for computing values
+ * dependent on the page number.
+ */
 public final class Page {
 
     public static final Element
@@ -40,14 +45,26 @@ public final class Page {
         define(Lists.newArrayList());
     }
 
+    /**
+     * Opens the first page for the player.
+     */
     public void open(Player player) {
         views.get(0).open(player);
     }
 
+    /**
+     * Opens the given page for the player. Pages are numbered starting at 1 and
+     * the page number is clamped to be a valid page.
+     */
     public void open(Player player, int page) {
         views.get(page > 1 ? Math.min(page, views.size()) - 1 : 0).open(player);
     }
 
+    /**
+     * Sets the contents of the pages and creates the associated views. This
+     * method currently renders all of the pages immediately, but in the future
+     * will likely be refactored to lazily load pages on demand.
+     */
     public Page define(List<Element> contents) {
         views.clear();
         int size = layout.getDimension().getRows() * layout.getDimension().getColumns() - layout.getElements().size();
@@ -73,6 +90,10 @@ public final class Page {
         return this;
     }
 
+    /**
+     * Represents the context for a specific page, primarily the current page
+     * number and total number of pages.
+     */
     public final class Context {
 
         private final int current;
@@ -91,16 +112,25 @@ public final class Page {
             return total;
         }
 
+        /**
+         * A callback for opening the page through the context.
+         */
         public void open(Player player, int page) {
             Page.this.open(player, page);
         }
 
     }
 
+    /**
+     * Creates a new builder for pages with the given archetype.
+     */
     public static Builder builder(InventoryArchetype archetype) {
         return new Builder(archetype);
     }
 
+    /**
+     * A builder for creating {@link Page}s.
+     */
     public static final class Builder {
 
         private static final Function<Context, Text> DEFAULT_TITLE = c -> Text.of("Page " + c.getCurrent());
@@ -129,21 +159,36 @@ public final class Page {
             this.archetype = archetype;
         }
 
+        /**
+         * Sets the function for computing the title. The default title is
+         * "Page #".
+         */
         public Builder title(Function<Context, Text> function) {
             title = function;
             return this;
         }
 
+        /**
+         * Sets the function for computing the element for a given icon. This is
+         * used to generate elements which are dependent on the page. Default
+         * icons are provided for {@link Page#FIRST} through {@link Page#LAST}.
+         */
         public Builder icon(Element icon, Function<Context, Element> function) {
             icons.put(icon, function);
             return this;
         }
 
+        /**
+         * Sets the layout used a template for pages.
+         */
         public Builder layout(Layout layout) {
             this.layout = layout;
             return this;
         }
 
+        /**
+         * Creates a Page from this builder.
+         */
         public Page build(PluginContainer container) {
             return new Page(this, container);
         }

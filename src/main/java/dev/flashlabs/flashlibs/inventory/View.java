@@ -21,6 +21,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * Represents an inventory which can be displayed to multiple players. Events
+ * that are outside of this inventory (such as the hotbar) will not be canceled.
+ */
 public final class View {
 
     private final Inventory inventory;
@@ -37,10 +41,17 @@ public final class View {
         this.container = container;
     }
 
+    /**
+     * Opens this view for the player.
+     */
     public void open(Player player) {
         player.openInventory(inventory);
     }
 
+    /**
+     * Sets all elements in the given layout to the corresponding slot in the
+     * inventory. Undefined indices are considered to be {@link Element#EMPTY}.
+     */
     public View define(Layout layout) {
         for (int i = 0; i < inventory.capacity(); i++) {
             set(layout.getElements().getOrDefault(i, Element.EMPTY), i);
@@ -48,11 +59,18 @@ public final class View {
         return this;
     }
 
+    /**
+     * Sets all elements in the given layout to the corresponding slot in the
+     * inventory. Undefined indices will be left unchanged.
+     */
     public View update(Layout layout) {
         layout.getElements().forEach((i, e) -> set(e, i));
         return this;
     }
 
+    /**
+     * Sets the element for a slot, modifying the display item and click action.
+     */
     public void set(Element element, int index) {
         if (element == Element.EMPTY) {
             elements.remove(index);
@@ -62,6 +80,9 @@ public final class View {
         set(element.getItem().createStack(), index);
     }
 
+    /**
+     * Sets the display item of a slot without modifying the click action.
+     */
     public void set(ItemStack item, int index) {
         inventory.query(QueryOperationTypes.INVENTORY_PROPERTY.of(SlotIndex.of(index))).set(item);
     }
@@ -89,10 +110,16 @@ public final class View {
         Task.builder().execute(() -> callback.accept(this)).submit(container);
     }
 
+    /**
+     * Creates a new builder for views with the given archetype.
+     */
     public static Builder builder(InventoryArchetype archetype) {
         return new Builder(archetype);
     }
 
+    /**
+     * A builder for creating {@link View}s.
+     */
     public static class Builder {
 
         private final InventoryArchetype archetype;
@@ -103,21 +130,33 @@ public final class View {
             this.archetype = archetype;
         }
 
+        /**
+         * Sets the title of the inventory. The default is {@link Text#EMPTY}.
+         */
         public Builder title(Text title) {
             this.title = title;
             return this;
         }
 
+        /**
+         * Adds an action for when the view is opened.
+         */
         public Builder onOpen(Consumer<Action<InteractInventoryEvent.Open>> onOpen) {
             listeners.put(InteractInventoryEvent.Open.class, (Consumer<Action>) (Object) onOpen);
             return this;
         }
 
+        /**
+         * Adds an action for when the view is closed.
+         */
         public Builder onClose(Consumer<Action<InteractInventoryEvent.Close>> onClose) {
             listeners.put(InteractInventoryEvent.Close.class, (Consumer<Action>) (Object) onClose);
             return this;
         }
 
+        /**
+         * Creates a View from this builder.
+         */
         public View build(PluginContainer container) {
             return new View(this, container);
         }
