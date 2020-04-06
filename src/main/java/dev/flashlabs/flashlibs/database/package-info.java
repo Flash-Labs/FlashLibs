@@ -3,7 +3,7 @@
  * as obtaining connections, executing statements, and managing transactions.
  */
 @NonnullByDefault
-@Library(id = "database", version = "0.0.0", async = true)
+@Library(id = "database", version = "0.1.0", async = true)
 package dev.flashlabs.flashlibs.database;
 
 import dev.flashlabs.flashlibs.Library;

@@ -4,9 +4,9 @@ plugins {
 }
 
 group "dev.flashlabs.flashlibs"
-version "0.0.0"
+version "0.1.0"
 
-ext.spongeapiVersion = "7.1.0"
+ext.spongeapiVersion = "7.2.0"
 
 dependencies {
     compile "org.spongepowered:spongeapi:$spongeapiVersion"

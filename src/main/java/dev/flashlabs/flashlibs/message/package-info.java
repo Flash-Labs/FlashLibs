@@ -3,7 +3,7 @@
  * that support argument placeholders.
  */
 @NonnullByDefault
-@Library(id = "message", version = "0.0.0", dependencies = {"translation"})
+@Library(id = "message", version = "0.1.0", dependencies = {"translation"})
 package dev.flashlabs.flashlibs.message;
 
 import dev.flashlabs.flashlibs.Library;
