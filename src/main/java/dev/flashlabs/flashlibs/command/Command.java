@@ -21,7 +21,6 @@ public abstract class Command implements CommandExecutor {
 
     private final CommandSpec spec;
     private final ImmutableList<String> aliases;
-    final Optional<CommandMapping> mapping;
 
     /**
      * Initializes this command with the values set in the builder and registers
@@ -31,12 +30,16 @@ public abstract class Command implements CommandExecutor {
      * @see CommandService#get(Class)
      */
     protected Command(Builder builder) {
-        spec = builder.spec.build();
+        spec = builder.spec.executor(this).build();
         aliases = builder.aliases.build();
-        mapping = Sponge.getCommandManager().register(builder.service.container, spec, aliases.stream()
-                .filter(a -> a.startsWith("/"))
-                .map(a -> a.substring(1))
-                .toArray(String[]::new));
+    }
+
+    public CommandSpec getSpec() {
+        return spec;
+    }
+
+    public ImmutableList<String> getAliases() {
+        return aliases;
     }
 
     /**
@@ -83,7 +86,8 @@ public abstract class Command implements CommandExecutor {
          * Adds the given commands as children to this command. Each child is
          * provided by the {@link CommandService}.
          */
-        public Builder children(Class<? extends Command>... children) {
+        @SafeVarargs
+        public final Builder children(Class<? extends Command>... children) {
             for (Class<? extends Command> child : children) {
                 Command command = service.get(child);
                 spec.child(command.spec, command.aliases.stream()
