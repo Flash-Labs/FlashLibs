@@ -3,7 +3,7 @@
  * in hierarchies, as well as other common actions for commands.
  */
 @NonnullByDefault
-@Library(id = "command", version = "0.1.0")
+@Library(id = "command", version = "0.1.1")
 package dev.flashlabs.flashlibs.command;
 
 import dev.flashlabs.flashlibs.Library;
