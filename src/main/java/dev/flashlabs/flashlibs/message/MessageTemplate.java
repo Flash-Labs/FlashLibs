@@ -1,9 +1,11 @@
 package dev.flashlabs.flashlibs.message;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TextTemplate;
+import org.spongepowered.api.text.format.TextFormat;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.util.List;
@@ -26,6 +28,7 @@ public final class MessageTemplate {
 
     private static final Pattern ARGUMENT = Pattern.compile("(?<!\\\\)\\$\\{(.*?)}");
     private static final Pattern PLACEHOLDER = Pattern.compile("((?:&[0-9a-fk-or])*)@([a-z-]+)");
+    private static final Pattern FORMAT = Pattern.compile("&(?:([0-9a-f])|([k-o])|(r))");
 
     private final TextTemplate template;
 
@@ -44,9 +47,12 @@ public final class MessageTemplate {
         List<Object> elements = Lists.newArrayList();
         Matcher argument = ARGUMENT.matcher(string);
         int index = 0;
+        TextFormat format = TextFormat.of();
         while (argument.find()) {
             if (index < argument.start()) {
-                elements.add(TextSerializers.FORMATTING_CODE.deserialize(string.substring(index, argument.start())));
+                Text text = deserialize(string.substring(index, argument.start()), format);
+                elements.add(text);
+                format = Iterables.getLast(text.withChildren()).getFormat();
             }
             Matcher placeholder = PLACEHOLDER.matcher(argument.group(1));
             if (placeholder.matches()) {
@@ -56,14 +62,38 @@ public final class MessageTemplate {
                 }
                 elements.add(builder);
             } else {
-                elements.add(Text.of(argument.group(1)));
+                elements.add(TextSerializers.FORMATTING_CODE.deserialize(argument.group(1)));
             }
             index = argument.end();
         }
-        if (index < string.length()) {
-            elements.add(TextSerializers.FORMATTING_CODE.deserialize(string.substring(index)));
-        }
+        elements.add(deserialize(string.substring(index), format));
         return new MessageTemplate(TextTemplate.of(elements.toArray()));
+    }
+
+    /**
+     * Helper method for deserializing texts starting with the given format and
+     * ensuring the returned text contains the ending format.
+     */
+    private static Text deserialize(String string, TextFormat format) {
+        Text.Builder builder = Text.builder();
+        Matcher matcher = FORMAT.matcher(string);
+        int index = 0;
+        while (matcher.find()) {
+            if (index < matcher.start()) {
+                builder.append(Text.of(format, string.substring(index, matcher.start())));
+            }
+            Text text = TextSerializers.FORMATTING_CODE.deserialize(matcher.group(0) + "?");
+            if (matcher.group(1) != null) {
+                format = text.getFormat();
+            } else if (matcher.group(2) != null) {
+                format = format.merge(text.getFormat());
+            } else {
+                format = TextFormat.NONE;
+            }
+            index = matcher.end();
+        }
+        builder.append(Text.of(format, string.substring(index)));
+        return builder.toText();
     }
 
     /**
