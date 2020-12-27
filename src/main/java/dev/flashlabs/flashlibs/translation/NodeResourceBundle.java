@@ -10,12 +10,18 @@ import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 import sun.util.ResourceBundleEnumeration;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import javax.annotation.Nullable;
 
 /**
  * Represents a {@link ResourceBundle} loaded from an {@link ConfigurationNode}.
@@ -53,13 +59,13 @@ final class NodeResourceBundle extends ResourceBundle {
     }
 
     /**
-     * The {@link ResourceBundle.Control} implementation supporting additional
-     * formats with Configurate. Hocon (.conf), Json (.json) and Yaml (.yaml)
-     * extensions are supported, as well as properties files and classes.
+     * Custom {@link ResourceBundle.Control} implementation. This supports Hocon
+     * (.conf), Json (.json), and Yaml (.yaml) via Configurate, as well as UTF-8
+     * encoded properties files .
      */
     private static final class Control extends ResourceBundle.Control {
 
-        private static final List<String> FORMATS = ImmutableList.of("conf", "json", "yaml", "properties", "class");
+        private static final List<String> FORMATS = ImmutableList.of("conf", "json", "yaml", "properties");
 
         @Override
         public List<String> getFormats(String baseName) {
@@ -67,7 +73,8 @@ final class NodeResourceBundle extends ResourceBundle {
         }
 
         @Override
-        public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload) throws IllegalAccessException, InstantiationException, IOException {
+        @Nullable
+        public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload) throws IOException {
             URL url = loader.getResource(toResourceName(toBundleName(baseName, locale), format));
             if (url != null) {
                 switch (format) {
@@ -77,8 +84,13 @@ final class NodeResourceBundle extends ResourceBundle {
                         return new NodeResourceBundle(GsonConfigurationLoader.builder().setURL(url).build().load());
                     case "yaml":
                         return new NodeResourceBundle(YAMLConfigurationLoader.builder().setURL(url).build().load());
-                    default:
-                        return super.newBundle(baseName, locale, "java." + format, loader, reload);
+                    case "properties":
+                        URLConnection connection = url.openConnection();
+                        connection.setUseCaches(!reload);
+                        try (InputStream stream = connection.getInputStream()) {
+                            return new PropertyResourceBundle(new InputStreamReader(stream, StandardCharsets.UTF_8));
+                        }
+                    default: throw new AssertionError(format);
                 }
             }
             return null;
