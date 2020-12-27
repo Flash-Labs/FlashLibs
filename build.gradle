@@ -4,7 +4,7 @@ plugins {
 }
 
 group "dev.flashlabs.flashlibs"
-version "0.1.1"
+version "0.1.2"
 
 ext.spongeapiVersion = "7.2.0"
 
