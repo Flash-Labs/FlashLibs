@@ -1,24 +1,23 @@
 plugins {
-    id "java"
+    id "java-library"
     id "org.spongepowered.plugin" version "0.9.0"
 }
 
 group "dev.flashlabs.flashlibs"
 version "0.1.2"
 
-ext.spongeapiVersion = "7.2.0"
+ext.spongeapiVersion = "7.4.0"
 
 dependencies {
-    compile "org.spongepowered:spongeapi:$spongeapiVersion"
-    testCompile "org.junit.jupiter:junit-jupiter:5.5.1"
+    implementation "org.spongepowered:spongeapi:$spongeapiVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.5.1"
     test.useJUnitPlatform()
 }
 
 //Sets plugin metadata through Gradle build instead of the @Plugin annotation.
 sponge.plugin.meta {
     description = "A library for Sponge development"
-    url = "https://flashlabs.dev/projects/flashlibs"
-    authors = ["FlashLabs"]
+    url = "https://github.com/Flash-Labs/FlashLibs"
 }
 
 jar.version = "v$version"
@@ -42,13 +41,6 @@ artifacts.archives (sourcesJar, javadocJar)
 
 //Copies produced jar files into a project folder for releases by version.
 task copyJars(type: Copy) {
-    from (jar, sourcesJar, javadocJar) into project.file("'releases/${version}")
+    from (jar, sourcesJar, javadocJar) into project.file("releases/v${version}")
 }
 build.dependsOn(copyJars)
-
-//Copies output jar to mods folder. The path is set by the serverRoot argument.
-task installJar(type: Copy) {
-    if (project.hasProperty("serverRoot")) {
-        from jar into "$serverRoot\\mods"
-    }
-}

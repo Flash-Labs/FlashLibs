@@ -7,7 +7,6 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.gson.GsonConfigurationLoader;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
-import sun.util.ResourceBundleEnumeration;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,10 +14,12 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import javax.annotation.Nullable;
@@ -55,7 +56,7 @@ final class NodeResourceBundle extends ResourceBundle {
 
     @Override
     public Enumeration<String> getKeys() {
-        return new ResourceBundleEnumeration(map.keySet(), parent != null ? parent.getKeys() : null);
+        return new ResourceBundleEnumeration();
     }
 
     /**
@@ -94,6 +95,45 @@ final class NodeResourceBundle extends ResourceBundle {
                 }
             }
             return null;
+        }
+
+    }
+
+    /**
+     * Custom {@link Enumeration} implementation to replace the {@code sun.util}
+     * one.
+     */
+    private class ResourceBundleEnumeration implements Enumeration<String> {
+
+        private final Enumeration<String> keys = Collections.enumeration(map.keySet());
+        private final Enumeration<String> parentKeys = parent != null ? parent.getKeys() : Collections.emptyEnumeration();
+        @Nullable private String next = null;
+
+        @Override
+        public boolean hasMoreElements() {
+            if (next == null) {
+                if (keys.hasMoreElements()) {
+                    next = keys.nextElement();
+                } else {
+                    while (next == null && parentKeys.hasMoreElements()) {
+                        next = parentKeys.nextElement();
+                        if (map.containsKey(next)) {
+                            next = null;
+                        }
+                    }
+                }
+            }
+            return next != null;
+        }
+
+        @Override
+        public String nextElement() {
+            if (hasMoreElements()) {
+                String result = this.next;
+                this.next = null;
+                return result;
+            }
+            throw new NoSuchElementException();
         }
 
     }

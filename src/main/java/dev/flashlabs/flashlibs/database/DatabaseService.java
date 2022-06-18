@@ -1,12 +1,12 @@
 package dev.flashlabs.flashlibs.database;
 
-import com.sun.rowset.CachedRowSetImpl;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.service.sql.SqlService;
 
 import java.sql.SQLException;
 import javax.sql.DataSource;
 import javax.sql.rowset.CachedRowSet;
+import javax.sql.rowset.RowSetProvider;
 
 /**
  * Provides a interface for interacting with a database using a
@@ -88,7 +88,7 @@ public final class DatabaseService {
      */
     public CachedRowSet query(String sql, Object... args) throws SQLException {
         try (Connection connection = getConnection()) {
-            CachedRowSetImpl cached = new CachedRowSetImpl();
+            CachedRowSet cached = RowSetProvider.newFactory().createCachedRowSet();
             cached.populate(connection.query(sql, args));
             return cached;
         }
